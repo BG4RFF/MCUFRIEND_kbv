@@ -1,6 +1,6 @@
 //#define SUPPORT_0139              //S6D0139 +280 bytes
 #define SUPPORT_0154              //S6D0154 +320 bytes
-//#define SUPPORT_1289              //costs about 408 bytes
+#define SUPPORT_1289              //costs about 408 bytes
 //#define SUPPORT_1580              //R61580 Untested
 #define SUPPORT_1963              //only works with 16BIT bus anyway
 //#define SUPPORT_4532              //LGDP4532 +120 bytes.  thanks Leodino
@@ -179,6 +179,8 @@ uint16_t MCUFRIEND_kbv::readID(void)
         return 0x5420;
     if (ret == 0x8989)          //SSD1289 is always 8989
         return 0x1289;
+    if (ret == 0x9797)          //SSD1297 is always 9797
+        return 0x1297;
     ret = readReg(0x67);        //HX8347-A
     if (ret == 0x4747)
         return 0x8347;
@@ -278,7 +280,7 @@ int16_t MCUFRIEND_kbv::readGRAM(int16_t x, int16_t y, uint16_t * block, int16_t 
         setReadDir();
         if (_lcd_capable & READ_NODUMMY) {
             ;
-        } else if ((_lcd_capable & MIPI_DCS_REV1) || _lcd_ID == 0x1289) {
+        } else if ((_lcd_capable & MIPI_DCS_REV1) || _lcd_ID == 0x1289 || _lcd_ID == 0x1297) {
             READ_8(r);
         } else {
             READ_16(dummy);
@@ -457,6 +459,7 @@ void MCUFRIEND_kbv::setRotation(uint8_t r)
             WriteCmdData(0x03, _lcd_madctl);    // set GRAM write direction and BGR=1.
             break;
 #ifdef SUPPORT_1289
+        case 0x1297:
         case 0x1289:
             _MC = 0x4E, _MP = 0x4F, _MW = 0x22, _SC = 0x44, _EC = 0x44, _SP = 0x45, _EP = 0x46;
             if (rotation & 1)
@@ -727,6 +730,7 @@ void MCUFRIEND_kbv::vertScroll(int16_t top, int16_t scrollines, int16_t offset)
         break;
 #endif
 #ifdef SUPPORT_1289
+    case 0x1297:
     case 0x1289:
         WriteCmdData(0x41, vsp);        //VL#
         break;
@@ -774,6 +778,7 @@ void MCUFRIEND_kbv::invertDisplay(boolean i)
         WriteCmdData(0x07, 0x13 | (_lcd_rev << 2));     //.kbv kludge
         break;
 #ifdef SUPPORT_1289
+    case 0x1297:
     case 0x1289:
         _lcd_drivOut &= ~(1 << 13);
         if (_lcd_rev)
@@ -1020,6 +1025,43 @@ void MCUFRIEND_kbv::begin(uint16_t ID)
             0x004e, 0x0000,
         };
         init_table16(SSD1289_regValues, sizeof(SSD1289_regValues));
+        break;
+    case 0x1297:
+        _lcd_capable = 0 | XSA_XEA_16BIT | REV_SCREEN;
+        // came from MikroElektronika library http://www.hmsprojects.com/tft_lcd.html
+        static const uint16_t SSD1297_regValues[] PROGMEM = {
+            0x0000, 0x0000,     //[0000] OSCE=0
+            0x0003, 0xA8A4,     //DCT=10, BT=4, DC=10, AP=4
+            0x000C, 0x0000,     //VRC=0
+            0x000D, 0x000C,     //VRH=12
+            0x000E, 0x2B00,     //VCOMG=1, VDV=11
+            0x001E, 0x00B7,     //nMTP=1, VCM=55
+            0x0007, 0x0221,     //VLE=1, GON=1, DTE=0, D=1
+            0x0001, 0x2B3F,     //REV=1, BGR=1, TB=1, MUX=319
+            0x0000, 0x0001,     //OSCE=1
+            0x0007, 0x0223,     //VLE=1, GON=1, DTE=0, D=3
+            0x0010, 0x0000,     //SLP=0
+            TFTLCD_DELAY, 30,
+            0x0007, 0x0233,     //VLE=1, GON=1, DTE=1, D=3
+            0x0011, 0x6040,     //[6040] DFM=3, TY=0, ID=3
+            0x0002, 0x0400,     //B_C=1
+//            0x000B, 0x0000,     //[5308]
+//            0x000F, 0x0000,     //[0000]
+
+            0x0030, 0x0707,
+            0x0031, 0x0204,
+            0x0032, 0x0204,
+            0x0033, 0x0502,
+            0x0034, 0x0507,
+            0x0035, 0x0204,
+            0x0036, 0x0204,
+            0x0037, 0x0502,
+            0x003A, 0x0302,
+            0x003B, 0x0302,
+
+//            0x0025, 0x8000,     //[8000]
+        };
+        init_table16(SSD1297_regValues, sizeof(SSD1297_regValues));
         break;
 #endif
 

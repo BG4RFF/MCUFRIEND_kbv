@@ -1028,23 +1028,22 @@ void MCUFRIEND_kbv::begin(uint16_t ID)
         break;
     case 0x1297:
         _lcd_capable = 0 | XSA_XEA_16BIT | REV_SCREEN;
-        // came from MikroElektronika library http://www.hmsprojects.com/tft_lcd.html
         static const uint16_t SSD1297_regValues[] PROGMEM = {
             0x0000, 0x0000,     //[0000] OSCE=0
-            0x0003, 0xA8A4,     //DCT=10, BT=4, DC=10, AP=4
-            0x000C, 0x0000,     //VRC=0
+            0x0003, 0xA8A4,     //[6A64] DCT=10, BT=4, DC=10, AP=4
+            0x000C, 0x0000,     //[0004] VRC=0
             0x000D, 0x000C,     //VRH=12
             0x000E, 0x2B00,     //VCOMG=1, VDV=11
             0x001E, 0x00B7,     //nMTP=1, VCM=55
             0x0007, 0x0221,     //VLE=1, GON=1, DTE=0, D=1
             0x0001, 0x2B3F,     //REV=1, BGR=1, TB=1, MUX=319
-            0x0000, 0x0001,     //OSCE=1
+            0x0000, 0x0001,     //[0000] OSCE=1
             0x0007, 0x0223,     //VLE=1, GON=1, DTE=0, D=3
-            0x0010, 0x0000,     //SLP=0
+            0x0010, 0x0000,     //[0001] SLP=0
             TFTLCD_DELAY, 30,
-            0x0007, 0x0233,     //VLE=1, GON=1, DTE=1, D=3
-            0x0011, 0x6040,     //[6040] DFM=3, TY=0, ID=3
-            0x0002, 0x0400,     //B_C=1
+            0x0007, 0x0233,     //[0000] VLE=1, SPT=0, GON=1, DTE=1, D=3
+            0x0011, 0x6830,     //[6830] DFM=3, Denmode=1, TY=0, ID=3
+            0x0002, 0x0400,     //[0000] B_C=1
 //            0x000B, 0x0000,     //[5308]
 //            0x000F, 0x0000,     //[0000]
 
@@ -1061,7 +1060,69 @@ void MCUFRIEND_kbv::begin(uint16_t ID)
 
 //            0x0025, 0x8000,     //[8000]
         };
+        // from https://github.com/rossumur/microtouch/blob/master/src/hardware/LCD_SSD1297.h
+        static const uint16_t SSD1298_rossumur_Values[] PROGMEM = {
+
+            0x0028, 0x0006,
+            0x0000, 0x0001,  // Oscillation start
+
+            0x0003, 0xaea4,  //  Power Control 1   Line frequency and VHG,VGL voltage
+            0x000c, 0x0004,  //  Power Control 2   VCIX2 output voltage
+            0x000d, 0x000c,  //  Power Control 3   Vlcd63 voltage
+            0x000e, 0x2800,  //  Power Control 4   VCOMA voltage VCOML=VCOMH*0.9475-VCOMA
+            0x001e, 0x00b5,  //  Power Control 5   VCOMH voltage
+
+            0x0001, 0x233f,  //  Driver Output
+
+            0x0002, 0x0600,  //  LCD Driver AC control
+
+            0x0010, 0x0000,  //  Sleep mode
+            0x0011, 0x6830,  //  Entry mode
+
+            // 0x05,0x00,0x00,    //  Not used
+            // 0x06,0x00,0x00,    //  Not used
+            0x0016, 0xef1c,
+
+            0x0007, 0x0333,  //  Display Control 1
+
+            0x000b, 0x0000,  //  Frame cycle control
+            0x000f, 0x0000,  //  Gate scan
+
+            0x0041, 0x0000,  //  Vertical scroll control 1
+            0x0042, 0x0000,  //  Vertical scroll control 2
+            0x0048, 0x0000,  //  First window start
+            0x0049, 0x013f,  //  First window end
+            0x004a, 0x0000,  //  Second window start
+            0x004b, 0x0000,  //  Second window end
+
+            // Don't need to init these here
+            //0x44,0xEF,0x00,    //  Horizontal RAM start and end address
+            //0x45,0x00,0x00,    //  Vertical RAM start address
+            //0x46,0x01,0x3F,    //  Vertical RAM end address
+            //0x4e,0x00,0x00,    //  GDDRAM X
+            //0x4f,0x00,0x00,    //  GDDRAM Y
+
+            0x0030, 0x0707,  //  Gamma control 1-10
+            0x0031, 0x0202,
+            0x0032, 0x0204,
+            0x0033, 0x0502,
+            0x0034, 0x0507,
+            0x0035, 0x0204,
+            0x0036, 0x0204,
+            0x0037, 0x0502,
+            0x003a, 0x0302,
+            0x003b, 0x0302,
+
+            //   0x23,0x00,0x00,    //  Not used
+            //   0x24,0x00,0x00,
+
+            0x0025, 0x8000,  //  Frame frequency
+            0x0026, 0x7000,  //
+            0x0020, 0xb0eb,
+            0x0027, 0x007c,
+        };
         init_table16(SSD1297_regValues, sizeof(SSD1297_regValues));
+//        init_table16(SSD1298_rossumur_Values, sizeof(SSD1298_rossumur_Values));
         break;
 #endif
 
